@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz App{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper code { background: #0000ff; padding: 2px 6px; }
+</style>
+
+    <div>
+        <form name="quiz" method="post">
+            {% for question in questionsData %}
+                <div>
+                <p>{{ question.question }}</p>
+                    {% for answer in question.answers %}
+                        <label>
+                            <input type="checkbox" name="x">
+                        </label> {{ answer.answer }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <input type="submit">
+        </form>
+    </div>
+{% endblock %}
