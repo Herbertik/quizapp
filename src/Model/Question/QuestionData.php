@@ -11,6 +11,7 @@ readonly class QuestionData
          * @var array<int, AnswerData> $answers
          */
         public array $answers,
+        public InputType $inputType,
     ) {
     }
 }

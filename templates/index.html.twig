@@ -8,13 +8,17 @@
 </style>
 
     <div>
-        <form name="quiz" method="post">
+        <form name="quiz" method="post" action="/answers">
             {% for question in questionsData %}
                 <div>
                 <p>{{ question.question }}</p>
                     {% for answer in question.answers %}
                         <label>
-                            <input type="checkbox" name="x">
+                            {% if question.inputType.value == "checkbox" %}
+                                <input type="checkbox" name="{{ question.question }}" value="{{ answer.answer }}">
+                            {% else %}
+                                <input type="radio" name="{{ question.question }}" value="{{ answer.answer }}">
+                            {% endif %}
                         </label> {{ answer.answer }}
                     {% endfor %}
                 </div>

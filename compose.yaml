@@ -1,5 +1,3 @@
-version: '3'
-
 services:
 ###> doctrine/doctrine-bundle ###
   database:
@@ -15,12 +13,24 @@ services:
       retries: 5
       start_period: 60s
     volumes:
-      - database_data:/var/lib/postgresql/data:rw
+      - ./ops/data/postgres:/var/lib/postgresql/data:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
+    ports:
+      - "5432:5432"
+  php:
+    build:
+      context: .
+      dockerfile: ./ops/php/dev.Dockerfile
+      args:
+        USERID: 1000
+    user: 1000:1000
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "composer install
+        symfony server:stop
+        symfony server:start --no-tls"
 
-volumes:
-###> doctrine/doctrine-bundle ###
-  database_data:
-###< doctrine/doctrine-bundle ###

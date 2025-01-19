@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Model\Question\AnswerData;
+use App\Model\Question\InputType;
 use App\Model\Question\QuestionData;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,24 +37,37 @@ class Controller extends AbstractController
                 ->fetchAllAssociative();
 
             $answersData = [];
+            $correctAnswerCount = 0;
             foreach ($answers as $answer) {
                 $answersData[] = new AnswerData($answer['id_answer'], $answer['answer'], $answer['is_correct']);
+                if ($answer['is_correct'] === true) {
+                    $correctAnswerCount++;
+                }
             }
-            $questionsData[] = new QuestionData($question['question'], $answersData);
+            if ($correctAnswerCount > 1) {
+                $questionsData[] = new QuestionData($question['question'], $answersData, InputType::Checkbox);
+            } else {
+                $questionsData[] = new QuestionData($question['question'], $answersData, InputType::Radio);
+            }
+
+
 
         }
-
 
         return $this->render('/index.html.twig', [
             'controller_name' => 'Controller',
             'questionsData' => $questionsData,
-
         ]);
     }
 
-    #[Route('/', name: 'index', methods: 'POST')]
+    #[Route('/answers', name: 'answers', methods: 'POST')]
     public function indexPost(): Response
     {
+        foreach ($questionsData as $questionData) {
+            foreach ($_REQUEST as $answerData) {
+
+            }
+        }
         return new Response(var_export($_REQUEST));
     }
 }
