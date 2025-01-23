@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Form\LoginType;
 use App\Model\Question\AnswerData;
 use App\Model\Question\InputType;
 use App\Model\Question\QuestionData;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -18,8 +20,8 @@ class Controller extends AbstractController
     {
     }
 
-    #[Route('/', name: 'index', methods: 'GET')]
-    public function index(): Response
+    #[Route('/quiz', name: 'index', methods: [Request::METHOD_GET])]
+    public function index(Request $request): Response
     {
         $queryBuilder = $this->connection->createQueryBuilder();
 
@@ -69,5 +71,22 @@ class Controller extends AbstractController
             }
         }
         return new Response(var_export($_REQUEST));
+    }
+
+    #[Route(path: '/login', name: 'login', methods: ['GET', 'POST'])]
+    public function login(Request $request): Response
+    {
+        $form = $this->createForm(LoginType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted())
+        {
+            dd($request->request->all());
+        }
+
+        return $this->render('login.html.twig', [
+            'controller_name' => 'Controller',
+            'form' => $form,
+        ]);
     }
 }
