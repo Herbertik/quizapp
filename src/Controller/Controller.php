@@ -2,11 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Front;
+use App\Form\FrontType;
 use App\Form\LoginType;
+use App\Form\RegisterType;
 use App\Model\Question\AnswerData;
 use App\Model\Question\InputType;
 use App\Model\Question\QuestionData;
 use Doctrine\DBAL\Connection;
+use phpDocumentor\Reflection\DocBlock\Tags\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,73 +24,41 @@ class Controller extends AbstractController
     {
     }
 
-    #[Route('/quiz', name: 'index', methods: [Request::METHOD_GET])]
+    #[Route('/', name: 'index', methods: [Request::METHOD_GET])]
     public function index(Request $request): Response
-    {
-        $queryBuilder = $this->connection->createQueryBuilder();
-
-        $queryBuilder->select('qaq.*')
-            ->from('quiz_app.question', 'qaq');
-
-        $questions = $queryBuilder->fetchAllAssociative();
-        foreach ($questions as $question) {
-            $queryBuilder = $this->connection->createQueryBuilder();
-            $answers = $queryBuilder->select('qaa.id_answer', 'qaa.answer', 'qaqa.is_correct')
-                ->from('quiz_app.answer', 'qaa')
-                ->join('qaa', 'quiz_app.question_answer', 'qaqa', 'qaqa.id_answer = qaa.id_answer')
-                ->where('qaqa.id_question = :id')
-                ->setParameter('id', $question['id_question'])
-                ->fetchAllAssociative();
-
-            $answersData = [];
-            $correctAnswerCount = 0;
-            foreach ($answers as $answer) {
-                $answersData[] = new AnswerData($answer['id_answer'], $answer['answer'], $answer['is_correct']);
-                if ($answer['is_correct'] === true) {
-                    $correctAnswerCount++;
-                }
-            }
-            if ($correctAnswerCount > 1) {
-                $questionsData[] = new QuestionData($question['question'], $answersData, InputType::Checkbox);
-            } else {
-                $questionsData[] = new QuestionData($question['question'], $answersData, InputType::Radio);
-            }
-
-
-
-        }
-
-        return $this->render('/index.html.twig', [
-            'controller_name' => 'Controller',
-            'questionsData' => $questionsData,
-        ]);
-    }
-
-    #[Route('/answers', name: 'answers', methods: 'POST')]
-    public function indexPost(): Response
-    {
-        foreach ($questionsData as $questionData) {
-            foreach ($_REQUEST as $answerData) {
-
-            }
-        }
-        return new Response(var_export($_REQUEST));
-    }
-
-    #[Route(path: '/login', name: 'login', methods: ['GET', 'POST'])]
-    public function login(Request $request): Response
     {
         $form = $this->createForm(LoginType::class);
         $form->handleRequest($request);
 
+        if (!$form->isSubmitted()) //todo potreba dodelat check if log in
+        {
+            return $this->render('login.html.twig', [
+                'controller_name' => 'Controller',
+                'form' => $form,
+            ]);
+        }
+        return $this->redirectToRoute("mainMenu");
+    }
+
+    #[Route(path: '/register', name: 'register', methods: [Request::METHOD_GET])]
+    public function login(Request $request): Response
+    {
+        $form = $this->createForm(RegisterType::class);
+        $form->handleRequest($request); // todo zapis do databaze
+
         if ($form->isSubmitted())
         {
-            dd($request->request->all());
+            return $this->redirectToRoute("mainMenu");
         }
 
-        return $this->render('login.html.twig', [
+        return $this->render('register.html.twig', [
             'controller_name' => 'Controller',
             'form' => $form,
         ]);
+    }
+#[Route(path: '/meinMenu',name: 'mainMenu', methods: [Request::METHOD_GET])]
+    public function mainMenu(): Response
+    {
+        return $this->render('index.html.twig'); // todo main menu je index.html.twig
     }
 }

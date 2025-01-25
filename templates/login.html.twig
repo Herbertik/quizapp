@@ -6,5 +6,9 @@
     <style>
         .example-wrapper code { background: #2b6e18; padding: 2px 6px; }
     </style>
-    {{ form(form) }}
+    {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.password) }}
+        {{ form_row(form.submit) }}
+    <a href="register" id="register">Register</a>
 {% endblock %}
