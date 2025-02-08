@@ -27,7 +27,7 @@ class QuizQuestion extends AbstractController
 
 
     #[Route('/questions', name: 'questions', methods: 'POST')]
-    public function quiz(Request $request): Response
+    public function quiz(): Response
     {
         $queryBuilder = $this->connection->createQueryBuilder();
 

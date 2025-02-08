@@ -4,17 +4,26 @@
 
 {% block body %}
     <style>
-        .example-wrapper code { background: #2b6e18; padding: 2px 6px; }
+        .example-wrapper code { background: #0000ff; padding: 2px 6px; }
     </style>
 
     <div>
-        <form name="answers" method="post">
-            <div>
-                <p>what is this</p>
-            </div>
-
-
-
+        <form name="quiz" method="post" action="/answers">
+            {% for question in questionsData %}
+                <div>
+                    <p>{{ question.question }}</p>
+                    {% for answer in question.answers %}
+                        <label>
+                            {% if question.inputType.value == "checkbox" %}
+                                <input type="checkbox" name="{{ question.question }}" value="{{ answer.answer }}">
+                            {% else %}
+                                <input type="radio" name="{{ question.question }}" value="{{ answer.answer }}">
+                            {% endif %}
+                        </label> {{ answer.answer }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <input type="submit">
         </form>
     </div>
 {% endblock %}
