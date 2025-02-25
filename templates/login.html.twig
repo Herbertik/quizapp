@@ -10,5 +10,7 @@
         {{ form_row(form.email) }}
         {{ form_row(form.password) }}
         {{ form_row(form.submit) }}
-    <a href="register" id="register">Register</a>
+    {{ form_end(form) }}
+
+    <a href="/register" id="register">Register</a>
 {% endblock %}

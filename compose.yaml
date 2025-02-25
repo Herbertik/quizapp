@@ -27,6 +27,9 @@ services:
     user: 1000:1000
     volumes:
       - ./:/app
+      - ./ops/php/docker-php-ext-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
     command: >
@@ -34,3 +37,9 @@ services:
         symfony server:stop
         symfony server:start --no-tls"
 
+  mailpit:
+    image: axllent/mailpit
+    environment:
+      TZ: "Europe/Prague"
+    ports:
+      - "8025:8025" # web ui

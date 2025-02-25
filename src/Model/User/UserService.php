@@ -10,7 +10,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
 {
-    public static function createUserFromForm(UserPasswordHasherInterface $passwordHasher, $form) : User
+    public function createUserFromForm(UserPasswordHasherInterface $passwordHasher, $form) : User
     {
         $user = new User();
         $user->setEmail($form->get('email')->getData());
