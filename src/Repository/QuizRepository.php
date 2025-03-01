@@ -19,13 +19,13 @@ class QuizRepository extends ServiceEntityRepository
         /**
          * @return Quiz[] Returns an array of Quiz objects
          */
-        public function findByExampleField($value): array
+        public function findByExampleField($value, $maxCount): array
         {
             return $this->createQueryBuilder('q')
-                ->andWhere('q.id = :val')
+                ->andWhere('q.id >= :val')
                 ->setParameter('val', $value)
                 ->orderBy('q.id', 'ASC')
-                ->setMaxResults(20)
+                ->setMaxResults($maxCount)
                 ->getQuery()
                 ->getResult()
             ;

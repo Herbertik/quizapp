@@ -6,6 +6,7 @@ use App\Repository\QuizRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: QuizRepository::class)]
+#[ORM\Table(name: 'quiz')]
 class Quiz
 {
     #[ORM\Id]
@@ -20,6 +21,7 @@ class Quiz
     private ?string $Creator = null;
 
     #[ORM\Column()]
+
     private ?int $Completed = 0;
 
     public function getId(): ?int
