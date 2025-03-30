@@ -16,7 +16,7 @@ class Answer
     #[ORM\Column(type: 'boolean', nullable: true)]
     private bool $isTrue;
     #[ORM\ManyToOne(targetEntity: Question::class)]
-    #[ORM\JoinColumn(name: 'question_id', referencedColumnName: 'id', unique: true)]
+    #[ORM\JoinColumn(name: 'question_id', referencedColumnName: 'id')]
     private int $relatedToQuestion;
 
 

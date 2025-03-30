@@ -18,8 +18,9 @@ class Question
     public string $question;
 
     #[ORM\ManyToOne(targetEntity: Quiz::class)]
-    #[ORM\JoinColumn(name: 'quiz_id', referencedColumnName: '', unique: true)]
-    private int $relatedToQuiz;
+    #[ORM\JoinColumn(name: 'quiz_id', referencedColumnName: 'id')]
+    private ?int $relatedToQuiz;
+
 
     public function __construct(
         $question,

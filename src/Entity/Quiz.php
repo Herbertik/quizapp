@@ -21,7 +21,6 @@ class Quiz
     private ?string $Creator = null;
 
     #[ORM\Column()]
-
     private ?int $Completed = 0;
 
     public function getId(): ?int

@@ -6,6 +6,9 @@
     <style>
         .example-wrapper code { background: #0000ff; padding: 2px 6px; }
     </style>
+    {{ form_start(form) }}
 
-    <h1>asdas</h1>
+    {{ form_end(form) }}
+
+    <a href="{{ path('mainMenu', {'limit': '10'}) }}">to menu</a> <input type="submit">
 {% endblock %}

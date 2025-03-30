@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Můj Profil{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Vítejte,</h1>
+
+        <!-- Statistika (vytvořené a dokončené kvízy) vedle sebe -->
+        <div class="row mt-4">
+            <div class="col-md-6 mb-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Vytvořené Kvízy</h5>
+                        <p class="card-text">{{ quizzesCreated[0]['count'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Dokončené Kvízy</h5>
+                        <p class="card-text">{{ quizzesFinished[0]['count'] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Poslední kvízy - pod statistiky -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Poslední Kvízy</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for quiz in lastQuizzes %}
+                                <li class="list-group-item">
+                                    <strong>{{ quiz.quiz_name }}</strong> -
+                                    <em>Vytvořil: {{ quiz.quiz_creator }}</em><br>
+                                    <small>Odesláno: {{ quiz.time|date('d.m.Y H:i') }}</small><br>
+                                    <strong>Úspěšnost: </strong>{{ quiz.percentage }}%
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

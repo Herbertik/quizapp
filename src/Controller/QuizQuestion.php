@@ -19,12 +19,6 @@ class QuizQuestion extends AbstractController
     {
     }
 
-    #[Route('/answers', name: 'answers', methods: 'POST')]
-    public function indexPost(): Response
-    {
-        return $this->render('answer.html.twig', []);
-    }
-
 
     #[Route('/questions', name: 'questions', methods: 'POST')]
     public function quiz(): Response
