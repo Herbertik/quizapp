@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Přidat otázku{% endblock %}
+
+{% block body %}
+    <h1>Přidat otázku do kvízu: {{ quiz.name }}</h1>
+
+    <form method="post">
+        <label for="question">Text otázky:</label>
+        <textarea id="question" name="question" required></textarea>
+
+        <button type="submit">Přidat otázku</button>
+    </form>
+{% endblock %}

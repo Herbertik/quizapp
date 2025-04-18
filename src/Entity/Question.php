@@ -14,12 +14,17 @@ class Question
     #[ORM\Column]
     private ?int $id = null;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     #[ORM\Column(length: 255)]
     public string $question;
 
     #[ORM\ManyToOne(targetEntity: Quiz::class)]
     #[ORM\JoinColumn(name: 'quiz_id', referencedColumnName: 'id')]
-    private ?int $relatedToQuiz;
+    private ?Quiz $relatedToQuiz;
 
 
     public function __construct(
@@ -28,5 +33,10 @@ class Question
     ) {
         $this->question = $question;
         $this->relatedToQuiz = $relatedToQuiz;
+    }
+
+    public function getRelatedToQuiz(): ?Quiz
+    {
+        return $this->relatedToQuiz;
     }
 }

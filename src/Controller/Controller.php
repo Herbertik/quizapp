@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Answer;
 use App\Entity\Question;
 use App\Entity\Quiz;
 use App\Entity\QuizResult;
 use App\Entity\User;
 use App\Form\FrontType;
 use App\Form\LoginType;
+use App\Form\MakingQuiz\QuizType;
 use App\Form\QuizzesType;
 use App\Form\RegisterType;
 use App\Model\Question\AnswerData;
@@ -143,19 +145,16 @@ class Controller extends AbstractController
             }
             $score = ($correctlyAnswered / $wrongAnswered) * 100;
 
-            // todo same popup massage
             $quizResult = new QuizResult();
-            $quizResult->setPercentage($score);
 
-            $date = new DateTime('@'.strtotime('now'));
-            $quizResult->setTime($date);
-            $userId = $this->security->getUser()->getId();
-            $quizResult->setUserId($userId);
+            $quizResult->setPercentage($score);
+            $quizResult->setTime(new DateTime('@'.strtotime('now')));
+            $quizResult->setUserId($this->security->getUser()->getId());
             $quizResult->setQuizId($quiz[0]['id']);
 
             $this->entityManager->clear();
             $this->entityManager->persist($quizResult);
-            $this->entityManager->flush(); // todo idk co to je za chybu
+            $this->entityManager->flush();
 
             return $this->redirectToRoute("mainMenu");
         }
@@ -168,11 +167,6 @@ class Controller extends AbstractController
         ]);
     }
 
-    #[Route('/answers', name: 'answers', methods: [Request::METHOD_GET, Request::METHOD_POST])]
-    public function indexPost(): Response
-    {
-        return $this->render('answers.html.twig');
-    }
 
     #[Route('/newQuiz', name: 'newQuiz', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function newQuiz(Request $request,): Response {
@@ -194,6 +188,7 @@ class Controller extends AbstractController
                 'form' => $form->createView(),
             ]);
     }
+
     #[Route('/CreatingQuiz/', name: 'creatingQuiz', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function creatingQuiz(Request $request,int $questionsCount = 0): Response                            //todo potreba udelat tvoreni quizu
     {
@@ -213,6 +208,7 @@ class Controller extends AbstractController
 
         ]);
     }
+
     #[Route('/profile', name: 'profile', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function profile(): Response
     {
@@ -242,15 +238,152 @@ class Controller extends AbstractController
             ->orderBy('pqr.time', 'DESC')
             ->fetchAllAssociative();
 
+        $userName = $this->security->getUser()->getNick();
+
         return $this->render('profile.html.twig',[
             'quizzesCreated' => $quizzesCreated,
             'quizzesFinished' => $quizzesFinished,
             'lastQuizzes' => $lastQuizzes,
+            'userName' => $userName,
         ]);
+
+
     }
+
     #[Route('/logout', name: 'app_logout', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function logout(): Response
     {
         throw new \LogicException('loginException');
     }
+
+    #[Route('/yourQuizzes', name: 'yourQuizzes', methods: [Request::METHOD_GET, Request::METHOD_POST])]
+    public function yourQuizzes(): Response
+    {
+        $queryBuilder = $this->connection->createQueryBuilder();
+
+        $quizzes = $queryBuilder
+            ->select('q.id, q.name, COUNT(qr.id) AS quizResultsCount')
+            ->from('public.quiz', 'q')
+            ->leftJoin('q', 'public.quiz_result', 'qr', 'q.id = qr.quiz_id')
+            ->where('q.creator = :user')
+            ->setParameter('user', $this->security->getUser()->getNick())
+            ->groupBy('q.id, q.name')
+            ->fetchAllAssociative();
+
+        return $this->render('yourQuizzes.html.twig', [
+            'quizzes' => $quizzes,
+        ]);
+    }
+    #[Route('/quizResults/{quizId}', name: 'quizResults')]
+    public function quizResults(int $quizId): Response
+    {
+        $queryBuilder = $this->connection->createQueryBuilder();
+
+        $results = $queryBuilder->select('pqr.*, u.nick')
+            ->from('public.quiz_result', 'pqr')
+            ->innerJoin('pqr', 'public.user', 'u', 'pqr.user_id = u.id')
+            ->where('pqr.quiz_id = :quiz_id')
+            ->setParameter('quiz_id', $quizId)
+            ->fetchAllAssociative();
+
+        return $this->render('quiz_results.html.twig', [
+            'results' => $results
+        ]);
+    }
+
+    #[Route('create_quiz', name: 'create_quiz')]
+    public function createQuiz(Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $quiz = new Quiz();
+            $quiz->setName($request->request->get('quiz_name'));
+            $quiz->setCreator($this->security->getUser());
+            $quiz->setCompleted(0);
+
+            $this->entityManager->persist($quiz);
+            $this->entityManager->flush();
+
+            return $this->redirectToRoute('add_question', ['quizId' => $quiz->getId()]);
+        }
+
+        return $this->render('MakingQuiz/create_quiz.html.twig');
+    }
+
+    #[Route('add-question/{quizId}', name: 'add_question')]
+    public function addQuestion(int $quizId, Request $request): Response
+    {
+        $quiz = $this->entityManager->getRepository(Quiz::class)->find($quizId);
+
+
+        if ($request->isMethod('POST')) {
+            $questionText = $request->request->get('question');
+
+            $question = new Question($questionText, $quiz);
+            $this->entityManager->persist($question);
+            $this->entityManager->flush();
+
+            return $this->redirectToRoute('add_answers', ['questionId' => $question->getId(), 'quizId' => $quizId]);
+        }
+
+        return $this->render('MakingQuiz/add_question.html.twig', ['quiz' => $quiz]);
+    }
+
+    #[Route('/add-answers/{quizId}/{questionId}', name: 'add_answers')]
+    public function addAnswers(int $questionId, Request $request, int $quizId): Response
+    {
+        $question = $this->entityManager->getRepository(Question::class)->find($questionId);
+
+
+        if ($request->isMethod('POST')) {
+            $answers = $request->request->get('answers'); // ['odpověď1', 'odpověď2', ...]
+            $corrects = $request->request->get('correct'); // např. ['1', '2'] pokud byly zaškrtnuté
+
+            foreach ($answers as $index => $answerText) {
+                $isTrue = in_array((string)$index, $corrects ?? [], true); // TRUE pokud index odpovědi je ve správných
+
+                $answer = new Answer($answerText,$isTrue,$question);
+
+                $this->entityManager->persist($answer);
+            }
+
+            $this->entityManager->flush();
+
+            return $this->redirectToRoute('add_question', ['quizId' => $quizId]);
+        }
+
+        return $this->render('MakingQuiz/add_answer.html.twig', [
+            'question' => $question,
+        ]);
+    }
+
+    #[Route('finish', name: 'finish_quiz')]
+    public function finishQuiz(SessionInterface $session, EntityManagerInterface $em): Response
+    {
+        $quizName = $session->get('quiz_name');
+        $questions = $session->get('questions');
+
+        $quiz = new Quiz();
+        $quiz->setName($quizName);
+        $quiz->setCreator($this->getUser()->getUserIdentifier()); // nebo jiné pole
+        $em->persist($quiz);
+
+        foreach ($questions as $q) {
+            $question = new Question($q['question'], $quiz);
+            $em->persist($question);
+
+            foreach ($q['answers'] as $a) {
+                $answer = new Answer($a['text'], $a['isTrue'], $question);
+                $em->persist($answer);
+            }
+        }
+
+        $em->flush();
+
+        // Mazání session dat
+        $session->remove('quiz_name');
+        $session->remove('questions');
+
+        return $this->redirectToRoute('yourQuizzes'); // nebo jakýkoliv jiný route
+    }
 }
+

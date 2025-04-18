@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vytvořit nový kvíz{% endblock %}
+
+{% block body %}
+    <h1>Vytvořit nový kvíz</h1>
+
+    <form method="post">
+        <label for="quiz_name">Název kvízu:</label>
+        <input type="text" id="quiz_name" name="quiz_name" required>
+
+        <button type="submit">Vytvořit</button>
+    </form>
+{% endblock %}

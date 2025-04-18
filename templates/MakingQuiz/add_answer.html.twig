@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Přidat odpovědi{% endblock %}
+
+{% block body %}
+    <h1>Přidat odpovědi pro otázku: "{{ question.question }}"</h1>
+
+    <form method="POST">
+        <div id="answers-wrapper">
+            <div class="answer-item">
+                <input type="text" name="answers[]" placeholder="Odpověď" required>
+                <label>
+                    <input type="checkbox" name="correct[]" value="0">
+                    Správná
+                </label>
+            </div>
+        </div>
+
+        <button type="button" onclick="addAnswer()">➕ Přidat další odpověď</button>
+        <br><br>
+        <button type="submit">✅ Uložit odpovědi</button>
+    </form>
+
+    <script>
+        let answerIndex = 1;
+
+        function addAnswer() {
+            const wrapper = document.getElementById('answers-wrapper');
+            const div = document.createElement('div');
+            div.classList.add('answer-item');
+            div.innerHTML = `
+                <input type="text" name="answers[]" placeholder="Odpověď" required>
+                <label>
+                    <input type="checkbox" name="correct[]" value="${answerIndex}">
+                    Správná
+                </label>
+            `;
+            wrapper.appendChild(div);
+            answerIndex++;
+        }
+    </script>
+{% endblock %}

@@ -3,38 +3,40 @@
 {% block title %}Quiz App{% endblock %}
 
 {% block body %}
-    <style>
-        .example-wrapper code { background: #0000ff; padding: 2px 6px; }
-    </style>
-
     <div class="container mt-4" style="max-width: 800px;">
-        {{ form_start(form) }}
-
-        {% for question in questionsData %}
-            <div class="mb-4">
-                <h5>{{ question.question }}</h5>
-                <div class="d-flex flex-column">
-                    {% for answer in question.answers %}
-                        <div class="form-check">
-                            {% if question.inputType.value == "checkbox" %}
-                                <input type="checkbox" class="form-check-input" name="{{ answer.answer }}" value="{{ answer.answer }}" id="{{ answer.answer }}">
-                                <label class="form-check-label" for="{{ answer.answer }}">{{ answer.answer }}</label>
-                            {% else %}
-                                <input type="radio" class="form-check-input" name="{{ question.question }}" value="{{ answer.answer }}" id="{{ answer.answer }}">
-                                <label class="form-check-label" for="{{ answer.answer }}">{{ answer.answer }}</label>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-        <a href="{{ path('newQuiz', {'questionCount': '1'}) }}" class="btn btn-success">Create New Quiz</a>
-        {{ form_end(form) }}
+        <a href="{{ path('yourQuizzes') }}" class="btn btn-primary btn-sm">← Zpět na Tvé Kvízy</a>
     </div>
 
+    <div class="container mt-4" style="max-width: 800px;">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {{ form_start(form) }}
 
+                {% for question in questionsData %}
+                    <div class="mb-4">
+                        <h5 class="text-dark">{{ question.question }}</h5>
+                        <div class="d-flex flex-column">
+                            {% for answer in question.answers %}
+                                <div class="form-check">
+                                    {% if question.inputType.value == "checkbox" %}
+                                        <input type="checkbox" class="form-check-input" name="{{ answer.answer }}" value="{{ answer.answer }}" id="{{ answer.answer }}">
+                                        <label class="form-check-label" for="{{ answer.answer }}">{{ answer.answer }}</label>
+                                    {% else %}
+                                        <input type="radio" class="form-check-input" name="{{ question.question }}" value="{{ answer.answer }}" id="{{ answer.answer }}">
+                                        <label class="form-check-label" for="{{ answer.answer }}">{{ answer.answer }}</label>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Odeslat</button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
 {% endblock %}

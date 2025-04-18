@@ -17,11 +17,9 @@ class QuizResult
     #[ORM\Column]
     private ?float $Percentage = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
+    #[ORM\Column]
     private ?int $userId;
-    #[ORM\ManyToOne(targetEntity: Quiz::class)]
-    #[ORM\JoinColumn(name: 'quiz_id', referencedColumnName: 'id')]
+    #[ORM\Column]
     private ?int $quizId;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

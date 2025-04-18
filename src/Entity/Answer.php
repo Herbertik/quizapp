@@ -17,7 +17,7 @@ class Answer
     private bool $isTrue;
     #[ORM\ManyToOne(targetEntity: Question::class)]
     #[ORM\JoinColumn(name: 'question_id', referencedColumnName: 'id')]
-    private int $relatedToQuestion;
+    private ?Question $relatedToQuestion;
 
 
     public function __construct(
@@ -36,6 +36,21 @@ class Answer
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getRelatedToQuestion(): int
+    {
+        return $this->relatedToQuestion;
+    }
+
+    public function isTrue(): bool
+    {
+        return $this->isTrue;
+    }
+
+    public function getText(): ?string
+    {
+        return $this->text;
     }
 
 }
