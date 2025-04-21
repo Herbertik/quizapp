@@ -3,40 +3,44 @@
 {% block title %}Přidat odpovědi{% endblock %}
 
 {% block body %}
-    <h1>Přidat odpovědi pro otázku: "{{ question.question }}"</h1>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="text-center mb-3">Přidat odpovědi</h1>
+                        <h5 class="text-muted text-center mb-4">„{{ question.question }}“</h5>
 
-    <form method="POST">
-        <div id="answers-wrapper">
-            <div class="answer-item">
-                <input type="text" name="answers[]" placeholder="Odpověď" required>
-                <label>
-                    <input type="checkbox" name="correct[]" value="0">
-                    Správná
-                </label>
+                        {{ form_start(form) }}
+
+                        <div class="mb-3">
+                            {% for child in form %}
+                                {% if child.vars.name != 'save' and child.vars.name != 'limit' %}
+                                    <div class="mb-3">
+                                        {{ form_row(child) }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {{ form_row(form.limit) }}
+
+
+
+                        <div class="text-center mt-4">
+                            <a href="{{ path('add_answers', { quizId: quizId, questionId: question.id, answers: answers }) }}"
+                               class="btn btn-outline-secondary mb-3">
+                                ➕ Přidat další odpověď
+                            </a>
+
+                            <div class="d-grid col-6 mx-auto">
+                                {{ form_row(form.save) }}
+                            </div>
+                        </div>
+                        {{ form_end(form, { render_rest: false }) }}
+                    </div>
+                </div>
             </div>
         </div>
-
-        <button type="button" onclick="addAnswer()">➕ Přidat další odpověď</button>
-        <br><br>
-        <button type="submit">✅ Uložit odpovědi</button>
-    </form>
-
-    <script>
-        let answerIndex = 1;
-
-        function addAnswer() {
-            const wrapper = document.getElementById('answers-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('answer-item');
-            div.innerHTML = `
-                <input type="text" name="answers[]" placeholder="Odpověď" required>
-                <label>
-                    <input type="checkbox" name="correct[]" value="${answerIndex}">
-                    Správná
-                </label>
-            `;
-            wrapper.appendChild(div);
-            answerIndex++;
-        }
-    </script>
+    </div>
 {% endblock %}

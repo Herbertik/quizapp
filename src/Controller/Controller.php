@@ -6,35 +6,24 @@ use App\Entity\Answer;
 use App\Entity\Question;
 use App\Entity\Quiz;
 use App\Entity\QuizResult;
-use App\Entity\User;
-use App\Form\FrontType;
-use App\Form\LoginType;
-use App\Form\MakingQuiz\QuizType;
 use App\Form\QuizzesType;
-use App\Form\RegisterType;
 use App\Model\Question\AnswerData;
 use App\Model\Question\InputType;
-use App\Model\Question\Login\LoginData;
 use App\Model\Question\QuestionData;
-use App\Repository\QuestionRepository;
 use App\Repository\QuizRepository;
-use App\Repository\UserRepository;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-
-
-
 class Controller extends AbstractController
 {
     public function __construct(
@@ -46,7 +35,7 @@ class Controller extends AbstractController
     }
 
     #[Route('/', name: 'index', methods: [Request::METHOD_GET, Request::METHOD_POST])]
-    public function index(Request $request,UserPasswordHasherInterface $passwordHasher): Response
+    public function index(): Response
     {
         if ($this->security->getUser() !== null) {
             return $this->redirectToRoute("mainMenu");
@@ -167,48 +156,6 @@ class Controller extends AbstractController
         ]);
     }
 
-
-    #[Route('/newQuiz', name: 'newQuiz', methods: [Request::METHOD_GET, Request::METHOD_POST])]
-    public function newQuiz(Request $request,): Response {
-
-        $form = $this->createForm(FormType::class);
-        $form->add('name', TextType::class,[]);
-        $form->add('submit', SubmitType::class,[]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted()) {
-
-            $quiz = new Quiz();
-            $quiz->setName($form->get('name')->getData())->setCreator($this->security->getUser()->getId());
-            return $this->redirectToRoute('creatingQuiz');
-        }
-
-        return $this->render('newQuiz.html.twig',
-            [
-                'form' => $form->createView(),
-            ]);
-    }
-
-    #[Route('/CreatingQuiz/', name: 'creatingQuiz', methods: [Request::METHOD_GET, Request::METHOD_POST])]
-    public function creatingQuiz(Request $request,int $questionsCount = 0): Response                            //todo potreba udelat tvoreni quizu
-    {
-        $form = $this->createForm(FormType::class);
-        $form->add('questionsCount', HiddenType::class,['data'=>$questionsCount++]);
-        for ($i = 0; $i < $questionsCount; $i++) {
-            $form->add('question'.$i, TextType::class,[]);
-        }
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted()) {
-
-        }
-
-
-        return $this->render('creatingQuiz.html.twig',[
-
-        ]);
-    }
-
     #[Route('/profile', name: 'profile', methods: [Request::METHOD_GET, Request::METHOD_POST])]
     public function profile(): Response
     {
@@ -216,7 +163,7 @@ class Controller extends AbstractController
         $quizzesCreated = $queryBuilder->select('count(pqz.*)')
             ->from('public.quiz', 'pqz')
             ->where('pqz.creator = :creator')
-            ->setParameter('creator', $this->security->getUser()->getId())
+            ->setParameter('creator', $this->security->getUser()->getNick())
             ->fetchAllAssociative();
 
 
@@ -297,7 +244,7 @@ class Controller extends AbstractController
         if ($request->isMethod('POST')) {
             $quiz = new Quiz();
             $quiz->setName($request->request->get('quiz_name'));
-            $quiz->setCreator($this->security->getUser());
+            $quiz->setCreator($this->security->getUser()->getNick());
             $quiz->setCompleted(0);
 
             $this->entityManager->persist($quiz);
@@ -315,34 +262,75 @@ class Controller extends AbstractController
         $quiz = $this->entityManager->getRepository(Quiz::class)->find($quizId);
 
 
-        if ($request->isMethod('POST')) {
-            $questionText = $request->request->get('question');
+        $form = $this->createForm(FormType::class)
+            ->add('question', TextType::class, [
+                'label' => 'Znění otázky   ',
+                'required' => true,
+            ])
+            ->add('submit', SubmitType::class, [
+                'label' => 'Přidat otázku',
+            ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $data = $form->getData();
+            $questionText = $data['question'];
 
             $question = new Question($questionText, $quiz);
             $this->entityManager->persist($question);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('add_answers', ['questionId' => $question->getId(), 'quizId' => $quizId]);
+            return $this->redirectToRoute('add_answers', [
+                'questionId' => $question->getId(),
+                'quizId' => $quizId,
+                'answers' => 1,
+            ]);
         }
 
-        return $this->render('MakingQuiz/add_question.html.twig', ['quiz' => $quiz]);
+        return $this->render('MakingQuiz/add_question.html.twig', [
+            'quiz' => $quiz,
+            'form' => $form->createView(),
+        ]);
     }
 
-    #[Route('/add-answers/{quizId}/{questionId}', name: 'add_answers')]
-    public function addAnswers(int $questionId, Request $request, int $quizId): Response
+    #[Route('/add-answers/{quizId}/{questionId}/{answers}', name: 'add_answers')]
+    public function addAnswers(int $quizId, int $questionId, Request $request, int $answers): Response
     {
         $question = $this->entityManager->getRepository(Question::class)->find($questionId);
+        $form = $this->createForm(FormType::class);
 
+        for ($i = 0; $i < $answers; $i++) {
+            $form->add('answer' . $i, TextType::class, [
+                'label' => 'Odpověď č. ' . ($i + 1),
+                'required' => true,
+            ])
+                ->add('isCorrect' . $i, CheckboxType::class, [
+                    'label' => 'Je odpověď č.' . ($i + 1). ' právná ',
+                    'required' => false,
+                ]);
+        }
 
-        if ($request->isMethod('POST')) {
-            $answers = $request->request->get('answers'); // ['odpověď1', 'odpověď2', ...]
-            $corrects = $request->request->get('correct'); // např. ['1', '2'] pokud byly zaškrtnuté
+        $form->add('save', SubmitType::class, ['label' => 'Uložit odpovědi']);
+        $form->add('limit', HiddenType::class, ['data' => $answers++]);
 
-            foreach ($answers as $index => $answerText) {
-                $isTrue = in_array((string)$index, $corrects ?? [], true); // TRUE pokud index odpovědi je ve správných
+        $form->handleRequest($request);
 
-                $answer = new Answer($answerText,$isTrue,$question);
+        if ($form->isSubmitted()) {
+            $data = $form->getData();
 
+            for ($i = 0; $i < $answers; $i++) {
+                $textKey = 'answer' . $i;
+                $correctKey = 'isCorrect' . $i;
+
+                if (!isset($data[$textKey]) || trim($data[$textKey]) === '') {
+                    continue;
+                }
+
+                $text = $data[$textKey];
+                $isCorrect = $data[$correctKey] ?? false;
+
+                $answer = new Answer($text, $isCorrect, $question);
                 $this->entityManager->persist($answer);
             }
 
@@ -352,38 +340,10 @@ class Controller extends AbstractController
         }
 
         return $this->render('MakingQuiz/add_answer.html.twig', [
+            'form' => $form->createView(),
             'question' => $question,
+            'quizId' => $quizId,
+            'answers' => $answers++,
         ]);
     }
-
-    #[Route('finish', name: 'finish_quiz')]
-    public function finishQuiz(SessionInterface $session, EntityManagerInterface $em): Response
-    {
-        $quizName = $session->get('quiz_name');
-        $questions = $session->get('questions');
-
-        $quiz = new Quiz();
-        $quiz->setName($quizName);
-        $quiz->setCreator($this->getUser()->getUserIdentifier()); // nebo jiné pole
-        $em->persist($quiz);
-
-        foreach ($questions as $q) {
-            $question = new Question($q['question'], $quiz);
-            $em->persist($question);
-
-            foreach ($q['answers'] as $a) {
-                $answer = new Answer($a['text'], $a['isTrue'], $question);
-                $em->persist($answer);
-            }
-        }
-
-        $em->flush();
-
-        // Mazání session dat
-        $session->remove('quiz_name');
-        $session->remove('questions');
-
-        return $this->redirectToRoute('yourQuizzes'); // nebo jakýkoliv jiný route
-    }
 }
-

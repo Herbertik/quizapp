@@ -3,12 +3,35 @@
 {% block title %}Přidat otázku{% endblock %}
 
 {% block body %}
-    <h1>Přidat otázku do kvízu: {{ quiz.name }}</h1>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="text-center mb-3">Přidat otázku</h1>
+                        <h5 class="text-muted text-center mb-4">Kvíz: {{ quiz.name }}</h5>
 
-    <form method="post">
-        <label for="question">Text otázky:</label>
-        <textarea id="question" name="question" required></textarea>
+                        {{ form_start(form) }}
 
-        <button type="submit">Přidat otázku</button>
-    </form>
+                        <div class="d-flex align-items-center mb-4">
+                            <label class="me-3 mb-0" style="width: 130px;">Znění otázky:</label>
+                            {{ form_widget(form.question, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+
+                        <div class="text-center mb-3">
+                            {{ form_widget(form.submit, { attr: { class: 'btn btn-primary px-5' } }) }}
+                        </div>
+                        {{ form_end(form, { render_rest: false }) }}
+
+                        <div class="text-center mt-4">
+                            <a href="{{ path('mainMenu') }}" class="btn btn-outline-primary">
+                                dokoncit Kvíz
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
